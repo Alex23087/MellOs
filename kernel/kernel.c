@@ -88,12 +88,12 @@ extern const char Fool[];
 
 bool keyboard_enabled = false; // maybe put this in some "state" struct?
 
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+
 void khang(){
     for(;;);
 }
-
-#pragma GCC push_options
-#pragma GCC optimize ("O0")
 
 // This function has to be self contained - no dependencies to the rest of the kernel!
 extern  void kpanic(struct regs *r) {
@@ -147,7 +147,7 @@ extern  void kpanic(struct regs *r) {
     outb(0x3D4, 0x0A);
     outb(0x3D5, 0x20);
 
-    for(;;);
+    khang();
 }
 
 #pragma GCC pop_options
@@ -228,14 +228,10 @@ extern void main(uint32_t multiboot_tags_addr){
     clear_screen_col(DEFAULT_COLOUR);
     set_cursor_pos_raw(0);
     
-    //allocator.granularity = 512;
-    //assign_kmallocator(&allocator);
-    buddy_init((void *)0x800000, 100000000);
-
     //set_kmalloc_bitmap((bitmap_t) 0x800000, 100000000);   // dynamic memory allocation setup test. Starting position is at 0x800000 as we avoid interfering with the kernel at 0x400000
     #ifdef VGA_VESA
-    // set_dynamic_mem_loc ((void*)framebuffer_end);
-    set_dynamic_mem_loc ((void*)0x800000 + 100000000/2);
+    buddy_init((void*)0x800000, 100000000);
+    set_dynamic_mem_loc ((void*)0x800000);
     MultibootTags* multiboot_tags = (MultibootTags*)multiboot_tags_addr;
     Hres = multiboot_tags->framebuffer_width;
     Vres = multiboot_tags->framebuffer_height;
@@ -244,12 +240,14 @@ extern void main(uint32_t multiboot_tags_addr){
     _vesa_text_init();
     mouse_install();
     #else
+    buddy_init((void *)0x800000, 100000000);
     set_dynamic_mem_loc ((void*)0x800000 + 100000000/2);
     #endif
     
     
     kb_install();
 
+#ifdef MELLOS_DEBUG
     kprint("Running fs tests... ");
     int failed_fs_tests = run_all_fs_tests();
     kprint(tostring_inplace(failed_fs_tests, 10));
@@ -259,6 +257,11 @@ extern void main(uint32_t multiboot_tags_addr){
     int failed_mem_tests = run_all_mem_tests();
     kprint(tostring_inplace(failed_mem_tests, 10));
     kprint(" failed\n");
+    if (failed_fs_tests + failed_mem_tests > 0){
+        kprint_col("TESTS FAILED!! HALTING\n", DEFAULT_COLOUR);
+        khang();
+    }
+#endif
 
     kprint("\n\n ENTERING COMMAND MODE...\n");
 

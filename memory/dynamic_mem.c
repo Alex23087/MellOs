@@ -19,7 +19,7 @@
 
 allocator_t* kmallocator = NULL;
 
-volatile void *dynamic_mem_loc = NULL;
+static volatile void *dynamic_mem_loc = NULL;
 
 void assign_kmallocator(allocator_t* allocator){
     kmallocator = allocator;

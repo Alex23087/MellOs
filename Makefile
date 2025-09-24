@@ -1,8 +1,8 @@
 .PHONY: all debug prebuild boot run clean
 
 VGA ?= VGA_VESA
-HRES ?= 1920
-VRES ?= 1080
+HRES ?= 600
+VRES ?= 400
 BPP ?= 32
 
 ## Compiler
@@ -17,9 +17,9 @@ SRC=$(shell pwd)
 BIN=./wee_bins
 ## Compiler Flags
 # possible options (ifdef): BOX_WINDOW_DRAG
-FLAGS=-ffreestanding -m32 -g -D$(VGA) -DHRES=$(HRES) -DVRES=$(VRES) -DBPP=$(BPP) -O3
+FLAGS?=-ffreestanding -m32 -g -D$(VGA) -DHRES=$(HRES) -DVRES=$(VRES) -DBPP=$(BPP) -O3
 ## NASM Flags
-NASMFLAGS=-D$(VGA) -DHRES=$(HRES) -DVRES=$(VRES) -DBPP=$(BPP)
+NASMFLAGS?=-D$(VGA) -DHRES=$(HRES) -DVRES=$(VRES) -DBPP=$(BPP)
 
 ## C source files
 CSRC := $(shell find ./ -name "*.c")
@@ -36,11 +36,11 @@ all:
 	$(MAKE) build
 
 debug:
-	$(MAKE) prebuild
-	$(MAKE) build
+	$(MAKE) FLAGS="$(FLAGS) -DMELLOS_DEBUG" prebuild
+	$(MAKE) FLAGS="$(FLAGS) -DMELLOS_DEBUG" build
 	$(OBJCP) --only-keep-debug $(BIN)/kernel.elf $(BIN)/kernel.sym
 
-	qemu-system-x86_64 -cdrom mellos.iso -hda test_disk.img -m 128M -s -vga std &
+	qemu-system-i386 -cdrom mellos.iso -no-reboot -serial file:serial.log -monitor stdio -d int,cpu_reset -D qemu_debug.log -hda test_disk.img
 
 prebuild: clean	## Prebuild instructions
 	clear

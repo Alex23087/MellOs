@@ -6,7 +6,7 @@
 #include "../utils/assert.h"
 #include "../misc/colours.h"
 #include "vesa.h"
-#include "dynamic_mem.h"
+#include "../../memory/dynamic_mem.h"
 
 struct VbeInfoBlock {
 	char signature[4];
@@ -113,9 +113,25 @@ void _vesa_text_set_dirty_callback(function_type f){
 void _vesa_text_init(){
 	fb = allocate_framebuffer(CONSOLE_HRES, CONSOLE_VRES);
 	fb->fb = kmalloc(fb->width * fb->height * 4);
-	// char buf[256];
-	// tostring((int)fb->fb, 16, buf);
-	// kprint(buf);
+#ifdef MELLOS_DEBUG
+	void* mem = (void*)fb->fb;
+	kprint("Framebuffer pointers: ");
+	char buf[256];
+	tostring((int)fb->fb, 16, buf);
+	kprint(buf);
+	kprint(" allocated framebuffer at ");
+	tostring((int)fb->fb, 16, buf);
+	kprint(buf);
+	kprint("\n");
+	kprint("Running mem tests... ");
+    int failed_mem_tests = run_all_mem_tests();
+    kprint(tostring_inplace(failed_mem_tests, 10));
+    kprint(" failed\n");
+    if (failed_mem_tests > 0){
+        kprint_col("TESTS FAILED in framebuffer!! HALTING\n", DEFAULT_COLOUR);
+        khang();
+    }
+#endif
 }
 
 void _vesa_text_set_framebuffer(Framebuffer* f){

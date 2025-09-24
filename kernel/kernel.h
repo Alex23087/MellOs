@@ -2,5 +2,6 @@
 #define KERNEL_H
 
 extern  void kpanic(struct regs *r);
+extern void khang();
 
 #endif
