@@ -58,12 +58,15 @@ list(REMOVE_DUPLICATES COMMON_DEFS_WITH_D)
 # Kernel source files
 file(GLOB_RECURSE KERNEL_C_SRCS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/*.c)
 list(FILTER KERNEL_C_SRCS EXCLUDE REGEX ".*/CMakeFiles/.*")
+# list(FILTER KERNEL_C_SRCS EXCLUDE REGEX ".*/external_modules/.*")
 
 set(INC_DIRS)
 # Header files are in same dirs as C files
 list(APPEND INC_DIRS ${CMAKE_SOURCE_DIR})
 # We will move to a "lib" dir for common code
 list(APPEND INC_DIRS ${CMAKE_SOURCE_DIR}/lib)
+# Includes for external modules
+list(APPEND INC_DIRS ${CMAKE_SOURCE_DIR}/external_modules/ext2)
 list(REMOVE_DUPLICATES INC_DIRS)
 include_directories(${INC_DIRS})
 # Source lists (replicate Makefile selection)
@@ -121,6 +124,7 @@ target_compile_options(kernel.elf PRIVATE
         $<$<AND:$<COMPILE_LANGUAGE:C>,$<CONFIG:Debug>>:-DMELLOS_DEBUG>
         $<$<AND:$<COMPILE_LANGUAGE:C>,$<NOT:$<CONFIG:Debug>>>:-O3>
         $<$<COMPILE_LANGUAGE:C>:-ffreestanding>
+        $<$<COMPILE_LANGUAGE:C>:-nostdinc>
         $<$<COMPILE_LANGUAGE:C>:-m32>
         $<$<COMPILE_LANGUAGE:C>:-fno-builtin>
         $<$<COMPILE_LANGUAGE:C>:-fno-stack-protector>

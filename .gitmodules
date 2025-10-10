@@ -1,0 +1,3 @@
+[submodule "external_modules/ext2"]
+	path = external_modules/ext2
+	url = git@github.com:Alex23087/minimal-ext2-mellos.git
